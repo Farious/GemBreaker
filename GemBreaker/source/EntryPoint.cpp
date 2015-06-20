@@ -6,6 +6,7 @@ EntryPoint::EntryPoint()
     sdl_initialized = false;
     window = nullptr;
     screenSurface = nullptr;
+    gameState = GameState::Init;
 }
 
 EntryPoint::~EntryPoint()
@@ -20,7 +21,7 @@ bool EntryPoint::InitSDL()
         // Let's Initialize SDL
         if (SDL_Init(SDL_INIT_VIDEO) < 0)
         {
-            LogMessage("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+            LogMessage(LogLevel::Error, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
             return false;
         }
 
@@ -30,14 +31,14 @@ bool EntryPoint::InitSDL()
     }
     else
     {
-        LogMessage("SDL already initialized");
+        LogMessage(LogLevel::Warn, "SDL already initialized");
         return true;
     }
 
     return false; //This is not expected
 }
 
-bool EntryPoint::CreateWindow(const int W, const int H)
+bool EntryPoint::CreateWindow(const uint32_t W, const uint32_t H)
 {
     if (sdl_initialized)
     {
@@ -45,7 +46,7 @@ bool EntryPoint::CreateWindow(const int W, const int H)
         window = SDL_CreateWindow(WindowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, W, H, SDL_WINDOW_SHOWN);
         if (window == nullptr)
         {
-            LogMessage("Window could not be created! SDL_Error: %s\n", SDL_GetError());
+            LogMessage(LogLevel::Error, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
             return false;
         }
 
@@ -54,7 +55,7 @@ bool EntryPoint::CreateWindow(const int W, const int H)
     }
     else
     {
-        LogMessage("SDL not initialized.");
+        LogMessage(LogLevel::Error, "SDL not initialized.");
         return false;
     }
 
@@ -64,6 +65,46 @@ bool EntryPoint::CreateWindow(const int W, const int H)
 bool EntryPoint::CreateWindow()
 {
     return CreateWindow(ScreenWidth, ScreenHeight);
+}
+
+bool EntryPoint::HandleSDLEvents()
+{
+    /* Poll for events. SDL_PollEvent() returns 0 when there are no  */
+    /* more events on the event queue, our while loop will exit when */
+    /* that occurs.                                                  */
+    while (SDL_PollEvent(&event)){
+        /* We are only worried about SDL_KEYDOWN and SDL_KEYUP events */
+        switch (event.type){
+        
+#pragma region Keyboard Events
+        case SDL_KEYDOWN:
+            LogMessage(LogLevel::Debug, "Key press detected\n");
+            if (event.key.keysym.sym == SDLK_ESCAPE)
+            {
+                gameState = GameState::End;
+            }
+
+            break;
+        case SDL_KEYUP:
+            LogMessage(LogLevel::Debug, "Key release detected\n");
+            break;
+#pragma endregion Keyboard Events
+
+#pragma region Mouse Events
+        case SDL_MOUSEBUTTONDOWN:
+            LogMessage(LogLevel::Debug, "The mouse is at: %d x %d", event.button.x, event.button.y);
+            break;
+#pragma endregion Mouse Events
+
+        case SDL_QUIT:
+            gameState = GameState::End;
+            break;
+        default:
+            break;
+        }
+    }
+
+    return true;
 }
 
 bool EntryPoint::PaintWindowRGB(const ColorRGB color)
@@ -82,7 +123,7 @@ bool EntryPoint::PaintWindowRGB(const ColorRGB color)
     }
     else
     {
-        LogMessage("SDL not initialized or window is NULL");
+        LogMessage(LogLevel::Error, "SDL not initialized or window is NULL");
         return false;
     }
 }
@@ -95,44 +136,23 @@ bool EntryPoint::OnQuit()
     //Quit SDL subsystems 
     SDL_Quit();
 
-    LogMessage("Goodbye");
+    LogMessage(LogLevel::Debug, "Goodbye");
     return true;
 }
 
 bool EntryPoint::MainLoop()
 {
-    SDL_Event event;
 
     int i = 0;
-    while (true)
+    while (gameState !=  GameState::End)
     {
+        HandleSDLEvents();
+
         i = (i + 1) % 255;
         ColorRGB color{ 255, i, 255 };
         PaintWindowRGB(color);
 
-        /* Poll for events. SDL_PollEvent() returns 0 when there are no  */
-        /* more events on the event queue, our while loop will exit when */
-        /* that occurs.                                                  */
-        while (SDL_PollEvent(&event)){
-            /* We are only worried about SDL_KEYDOWN and SDL_KEYUP events */
-            switch (event.type){
-            case SDL_KEYDOWN:
-                printf("Key press detected\n");
-                if (event.key.keysym.sym == SDLK_ESCAPE)
-                {
-                    return false;
-                }
-
-                break;
-
-            case SDL_KEYUP:
-                printf("Key release detected\n");
-                break;
-
-            default:
-                break;
-            }
-        }
+       
 
         SDL_Delay(100);
     }
