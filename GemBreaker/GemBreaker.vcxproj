@@ -79,7 +79,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="source\EntryPoint.cpp" />
     <ClCompile Include="source\SampleTest.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\DebugTools.h" />
+    <ClInclude Include="include\EntryPoint.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

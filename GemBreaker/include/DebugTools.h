@@ -1,26 +1,14 @@
 #pragma once
+// Standard IO
+#include <stdio.h>
+
 /*
  * Just a wrapper for debug messaging
 */
 // Enable\Disable debug messages
 #define GB_DEBUG 1
 
-class DebugTools
-{
-public:
-
-    DebugTools()
-    {
-    }
-
-    ~DebugTools()
-    {
-    }
-
-    void LogMessage(const string msg);
-};
-
-void DebugTools::LogMessage(const string msg)
+void LogMessage(const char* msg, ...)
 {
     if (GB_DEBUG)
     {

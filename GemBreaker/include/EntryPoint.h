@@ -5,12 +5,26 @@
 // Standard IO
 #include <stdio.h>
 
+// Simple debugging tools
+#include "DebugTools.h"
+
+// Simple color holder in RGB Space
+struct ColorRGB
+{
+    int R;
+    int G;
+    int B;
+};
+
 class EntryPoint
 {
 public:
     //TODO - Screen dimensions
-    const int SCREEN_WIDTH = 640;
-    const int SCREEN_HEIGHT = 480;
+    const int ScreenWidth = 640;
+    const int ScreenHeight = 480;
+
+    // Window name
+    const char* WindowName = "GemBreaker";
 
 private:
 #pragma region SDL Variables
@@ -28,6 +42,13 @@ public:
 	EntryPoint();
     ~EntryPoint();
 
+#pragma region SDL Functions
+    bool InitSDL();
     bool CreateWindow(const int W, const int H);
-};
+    bool CreateWindow();
+    bool PaintWindowRGB(const ColorRGB color);
+    bool OnQuit();
+#pragma endregion SDL Functions
 
+    bool MainLoop();
+};
