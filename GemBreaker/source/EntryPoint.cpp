@@ -26,6 +26,29 @@ bool EntryPoint::InitSDL()
         }
 
         sdl_initialized = true;
+
+        //Initialize PNG loading 
+        int imgFlags = IMG_INIT_PNG;
+        if (!(IMG_Init(imgFlags) & imgFlags))
+        {
+            LogMessage(LogLevel::Error, "SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
+            return false;
+        }
+
+        //Initialize SDL_ttf 
+        if (TTF_Init() == -1)
+        {
+            LogMessage(LogLevel::Error, "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
+            return false;
+        }
+
+        font = TTF_OpenFont(fontName.c_str(), 10);
+        if (font == nullptr)
+        {
+            LogMessage(LogLevel::Error, "Failed to load font! SDL_ttf Error: %s\n", TTF_GetError());
+            return false;
+        }
+
         // Everything went as expected
         return true;
     }
@@ -38,7 +61,7 @@ bool EntryPoint::InitSDL()
     return false; //This is not expected
 }
 
-bool EntryPoint::CreateWindow(const uint32_t W, const uint32_t H)
+bool EntryPoint::CreateWindow(const Uint32 W, const Uint32 H)
 {
     if (sdl_initialized)
     {
@@ -47,6 +70,14 @@ bool EntryPoint::CreateWindow(const uint32_t W, const uint32_t H)
         if (window == nullptr)
         {
             LogMessage(LogLevel::Error, "Window could not be created! SDL_Error: %s\n", SDL_GetError());
+            return false;
+        }
+
+        //Create renderer for window 
+        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+        if (renderer == nullptr)
+        {
+            LogMessage(LogLevel::Error, "Renderer could not be created! SDL Error: %s\n", SDL_GetError());
             return false;
         }
 
@@ -75,7 +106,7 @@ bool EntryPoint::HandleSDLEvents()
     while (SDL_PollEvent(&event)){
         /* We are only worried about SDL_KEYDOWN and SDL_KEYUP events */
         switch (event.type){
-        
+
 #pragma region Keyboard Events
         case SDL_KEYDOWN:
             LogMessage(LogLevel::Debug, "Key press detected\n");
@@ -107,7 +138,7 @@ bool EntryPoint::HandleSDLEvents()
     return true;
 }
 
-bool EntryPoint::PaintWindowRGB(const ColorRGB color)
+bool EntryPoint::PaintWindowRGB(const SDL_Color color)
 {
     if (sdl_initialized && window != nullptr)
     {
@@ -115,7 +146,7 @@ bool EntryPoint::PaintWindowRGB(const ColorRGB color)
         screenSurface = SDL_GetWindowSurface(window);
 
         //Fill the surface white 
-        SDL_FillRect(screenSurface, nullptr, SDL_MapRGB(screenSurface->format, color.R, color.G, color.B));
+        SDL_FillRect(screenSurface, nullptr, SDL_MapRGB(screenSurface->format, color.r, color.g, color.b));
 
         //Update the surface 
         SDL_UpdateWindowSurface(window);
@@ -130,31 +161,92 @@ bool EntryPoint::PaintWindowRGB(const ColorRGB color)
 
 bool EntryPoint::OnQuit()
 {
-    //Destroy window 
-    SDL_DestroyWindow(window);
+    // Destroy font
+    delete fpsTex;
+    fpsTex = nullptr;
+    TTF_CloseFont(font);
+    font = nullptr;
 
-    //Quit SDL subsystems 
+    // Destroy window 
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    window = nullptr;
+    renderer = nullptr;
+
+    // Quit SDL subsystems 
+    IMG_Quit();
+    TTF_Quit();
     SDL_Quit();
 
     LogMessage(LogLevel::Debug, "Goodbye");
     return true;
 }
 
+void EntryPoint::CalculateAverageFPS()
+{
+    avgFPS = frameCount / (fpsTimer.getTicks() / 1000.f);
+    if (avgFPS > 2000000)
+    {
+        avgFPS = 0;
+    }
+}
+
+void EntryPoint::DrawFramerate()
+{
+    fpsTex->LoadFromRenderedText(font, std::to_string(avgFPS), SDL_Color{ 255, 0, 0, 0 });
+    fpsTex->Render(0, 0);
+}
+
 bool EntryPoint::MainLoop()
 {
+    // Let's start the FPS timer
+    fpsTimer.start();
 
-    int i = 0;
-    while (gameState !=  GameState::End)
+    // Setup FPS texture
+    fpsTex = new SimpleTexture(renderer);
+
+    // TODO - Remove this
+    SimpleTexture bgTex(renderer);//../../External/KenneyNL/PNG/Balls/Black/
+    auto rOk = bgTex.LoadFromFile("ballBlack_10.png", SDL_Color{ 0, 0, 0, 0 });
+
+    if (!rOk)
     {
+        gameState = GameState::End;
+        return false;
+    }
+    // TODO - end remove this
+
+    Uint32 i = 0;
+    while (gameState != GameState::End)
+    {
+        // Frame rate timer cap
+        capTimer.start();
+
+        // Handling all SDL events
         HandleSDLEvents();
 
-        i = (i + 1) % 255;
-        ColorRGB color{ 255, i, 255 };
-        PaintWindowRGB(color);
+        // Clears the renderer
+        SDL_RenderClear(renderer);
 
-       
+        // Update FrameRate counter
+        CalculateAverageFPS();
 
-        SDL_Delay(100);
+        bgTex.Render(i++ % ScreenWidth, 0);
+
+        // FPS Drawing
+        DrawFramerate();
+
+        // Update frame
+        SDL_RenderPresent(renderer);
+        frameCount++;
+
+        // If frame finished early 
+        Uint32 frameTicks = capTimer.getTicks();
+        if (frameTicks < ScreenTicksPerFrame)
+        {
+            //Wait remaining time 
+            SDL_Delay(ScreenTicksPerFrame - frameTicks);
+        }
     }
 
     return true;
@@ -169,12 +261,8 @@ int main(int argc, char* args[])
     if (state)
     {
         app.CreateWindow();
-        ColorRGB color{ 255, 0, 255 };
-        app.PaintWindowRGB(color);
 
         app.MainLoop();
-
-        //SDL_Delay(5000);
 
         app.OnQuit();
     }
