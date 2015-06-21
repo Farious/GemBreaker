@@ -230,7 +230,7 @@ bool EntryPoint::MainLoop()
 
         // Update FrameRate counter
         CalculateAverageFPS();
-
+        
         bgTex.Render(i++ % ScreenWidth, 0);
 
         // FPS Drawing

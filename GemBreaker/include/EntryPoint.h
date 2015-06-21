@@ -53,7 +53,7 @@ private:
     SDL_Event event;
 #pragma endregion SDL Variables
 
-#pragma region Game Variables
+#pragma region Game Settings Variables
     GameState gameState = GameState::Init;
     SimpleTimer fpsTimer;
     SimpleTimer capTimer;
@@ -62,13 +62,15 @@ private:
     Uint32 frameCount = 0;
     float avgFPS = 0;
     SimpleTexture* fpsTex = nullptr;
-#pragma endregion Game Variables
+#pragma endregion Game Settings Variables
 
 #pragma region Game Cosmetics
     string fontName = "resources/OpenSans-Regular.ttf";
     TTF_Font* font = nullptr;
 #pragma endregion Game Cosmetics
 
+    // The game table
+    GameTable game;
 public:
 	EntryPoint();
     ~EntryPoint();
