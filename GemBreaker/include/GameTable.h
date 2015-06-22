@@ -7,34 +7,17 @@
 #include <random>
 #include <algorithm>
 #include <chrono>
+#include <functional>
 
 // GemBreaker includes
 #include "SimpleTexture.h"
 #include "SimpleTimer.h"
 #include "DebugTools.h"
-#include <functional>
+#include "Block.h"
 
 
 #pragma region Block Definition
-enum class BlockColour :Uint8 { Red = 0, Yellow, Green, Blue, Black, White, NumberOfValues };
-enum class BlockType :Uint8 { Brick = 0, Bomb, Multiplier, NumberOfValues };
 
-// The idea is to use the same texture and only tint it accordingly
-struct Block
-{
-    BlockColour color;
-    BlockType type;
-    Uint32 x;
-    Uint32 y;
-    Uint32 points;
-    Uint32 mult;
-
-    // Render function
-    void Render();
-
-    // Print function (for debuging)
-    void Print();
-};
 #pragma endregion Block Definition
 
 // Defining the alias to help out readability, hash map on the coordinates
@@ -42,13 +25,10 @@ using Column = std::unordered_map < Uint32, Block* > ;
 using Table = std::unordered_map < Uint32, Column* > ;
 using uDist = std::uniform_int_distribution < Uint32 > ;
 
-// Simple Uint32 2D vector
-struct vector2D { Uint32 x; Uint32 y; };
-
 class GameTable
 {
 public:
-    GameTable();
+    GameTable(SDL_Renderer* pRenderer);
     ~GameTable();
 
     // Resets and Init Game
@@ -69,7 +49,7 @@ public:
 #pragma endregion Table Generation Functions
 
     // Render the table
-    void Render();
+    void Render(SDL_Renderer* renderer);
 
     // Calculate experience for next level
     void CalcNextLevelExperience();
@@ -87,6 +67,9 @@ public:
     // Get current experience in [0, 1[
     const Uint32 GetExperience();
 #pragma endregion Getters
+
+    // Event handler
+    void HandleSDLMouseEvent(SDL_Event& event);
 
 private:
     /*
@@ -115,7 +98,7 @@ private:
     SimpleTimer* timer;
 
     // Table screen position (upper left corner)
-    vector2D ulPos;
+    SDL_Point ulPos;
 
     // Simple random generator
     std::default_random_engine generator;

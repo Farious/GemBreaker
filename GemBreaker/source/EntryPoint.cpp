@@ -6,6 +6,8 @@ EntryPoint::EntryPoint()
     sdl_initialized = false;
     window = nullptr;
     screenSurface = nullptr;
+    game = nullptr;
+
     gameState = GameState::Init;
 }
 
@@ -98,6 +100,24 @@ bool EntryPoint::CreateWindow()
     return CreateWindow(ScreenWidth, ScreenHeight);
 }
 
+void EntryPoint::Start()
+{
+    // Initializes SDL
+    auto state = InitSDL();
+
+    if (state)
+    {
+        CreateWindow();
+
+        // Initializes GameTable
+        game = new GameTable(renderer);
+
+        MainLoop();
+
+        OnQuit();
+    }
+}
+
 bool EntryPoint::HandleSDLEvents()
 {
     /* Poll for events. SDL_PollEvent() returns 0 when there are no  */
@@ -124,6 +144,9 @@ bool EntryPoint::HandleSDLEvents()
 #pragma region Mouse Events
         case SDL_MOUSEBUTTONDOWN:
             LogMessage(LogLevel::Debug, "The mouse is at: %d x %d", event.button.x, event.button.y);
+            
+            // Let's pass this event down to the GameTable
+            game->HandleSDLMouseEvent(event);
             break;
 #pragma endregion Mouse Events
 
@@ -173,6 +196,9 @@ bool EntryPoint::OnQuit()
     window = nullptr;
     renderer = nullptr;
 
+    // Destroy the GameTable
+    delete game;
+
     // Quit SDL subsystems 
     IMG_Quit();
     TTF_Quit();
@@ -207,7 +233,7 @@ bool EntryPoint::MainLoop()
 
     // TODO - Remove this
     SimpleTexture bgTex(renderer);//../../External/KenneyNL/PNG/Balls/Black/
-    auto rOk = bgTex.LoadFromFile("ballBlack_10.png", SDL_Color{ 0, 0, 0, 0 });
+    auto rOk = bgTex.LoadFromFileRGB("ballBlack_10.png", SDL_FALSE, nullptr);
 
     if (!rOk)
     {
@@ -230,13 +256,16 @@ bool EntryPoint::MainLoop()
 
         // Update FrameRate counter
         CalculateAverageFPS();
-        
+
         bgTex.Render(i++ % ScreenWidth, 0);
+
+        game->Render(renderer);
 
         // FPS Drawing
         DrawFramerate();
 
         // Update frame
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderPresent(renderer);
         frameCount++;
 
@@ -256,16 +285,7 @@ int main(int argc, char* args[])
 {
     EntryPoint app;
 
-    auto state = app.InitSDL();
-
-    if (state)
-    {
-        app.CreateWindow();
-
-        app.MainLoop();
-
-        app.OnQuit();
-    }
+    app.Start();
 
     return true;
 }

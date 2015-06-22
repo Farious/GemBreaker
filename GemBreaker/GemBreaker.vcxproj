@@ -81,6 +81,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="source\Block.cpp" />
     <ClCompile Include="source\GameTable.cpp" />
     <ClCompile Include="source\DebugTools.cpp" />
     <ClCompile Include="source\SimpleTexture.cpp" />
@@ -89,6 +90,7 @@
     <ClCompile Include="source\SampleTest.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\Block.h" />
     <ClInclude Include="include\GameTable.h" />
     <ClInclude Include="include\DebugTools.h" />
     <ClInclude Include="include\EntryPoint.h" />

@@ -1,20 +1,7 @@
 #include "GameTable.h"
 
-void Block::Render()
-{
 
-}
-
-void Block::Print()
-{
-    LogMessage(LogLevel::Debug, "Block:: Color  : %d", color);
-    LogMessage(LogLevel::Debug, "Block:: Type   : %d", type);
-    LogMessage(LogLevel::Debug, "Block:: (x, y) : (%d, %d)", x, y);
-    LogMessage(LogLevel::Debug, "Block:: Points : %d", points);
-    LogMessage(LogLevel::Debug, "Block:: Mult.  : %d", mult);
-}
-
-GameTable::GameTable()
+GameTable::GameTable(SDL_Renderer* pRenderer)
 {
     // Game table initialization
     table = new Table();
@@ -23,7 +10,7 @@ GameTable::GameTable()
     timer = new SimpleTimer();
 
     // Upper Left position
-    ulPos = vector2D{ 50, 50 };
+    ulPos = SDL_Point{ 50, 50 };
 
     // Initialize randomization
     distributionForColumn = uDist(minColNum, rowNum);
@@ -43,6 +30,9 @@ GameTable::GameTable()
     randColNum = std::bind(distributionForColumn, generator);
     randBlockColor = std::bind(distributionForBlockColor, generator);
     randBlockType = std::bind(distributionForBlockType, generator);
+
+    blockTexture = new SimpleTexture(pRenderer);
+    blockTexture->LoadFromFileRGB("resources/textures/BackTile_05.png", SDL_FALSE, nullptr);
 
     // Initialize all the game variables
     Init();
@@ -79,17 +69,6 @@ void GameTable::Init()
 
     // Generate the table
     GenerateTable();
-    auto col = table->find(colLimit - 1);
-    if (col != table->end())
-    {
-        auto row = col->second->find(0);
-
-        if (row != col->second->end())
-        {
-            auto block = row->second;
-            block->Print();
-        }
-    }
 
     // Reset timer
     timer->start();
@@ -128,14 +107,14 @@ Column* GameTable::GenerateColumn(Uint32 col)
     Column* iCol = new Column();
 
     // The number of blocks to create
-    auto rows = randColNum();
+    auto rows = rowNum;//randColNum();
 
     for (Uint32 row = 0; row < rows; row++)
     {
         // Generate new block
         auto bColour = static_cast<BlockColour>(randBlockColor());
         auto bType = static_cast<BlockType>(randBlockType());
-        Block* block = new Block{ bColour, bType, col, row, 1, 1 };
+        Block* block = new Block(bColour, bType, col, row, 1, 1);
 
         // Generate the pair to populate the column
         auto pair = std::make_pair(row, block);
@@ -159,6 +138,28 @@ void GameTable::GenerateTable()
     }
 }
 
+void GameTable::Render(SDL_Renderer* renderer)
+{
+    for (auto& p1 : *table)
+    {
+        auto col = p1.first;
+        auto colRow = p1.second;
+
+        // For each block in the current column
+        for (auto& p2 : *colRow)
+        {
+            auto row = p2.first;
+            auto block = p2.second;
+            auto color = block->RetrieveColor(block->color);
+
+            blockTexture->setColor(color);
+            //SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+            blockTexture->Render(block->rect);
+            //SDL_RenderFillRect(renderer, &(block->rect));
+        }
+    }
+}
+
 void GameTable::CalcNextLevelExperience()
 {
     expToLevelUp = ((level + 1) ^ 2) * baseExpToLevelUp;
@@ -178,4 +179,26 @@ void GameTable::LevelUp()
     // Update random functions
     randBlockColor = std::bind(distributionForBlockColor, generator);
     randBlockType = std::bind(distributionForBlockType, generator);
+}
+
+void GameTable::HandleSDLMouseEvent(SDL_Event& event)
+{
+    auto mousePos = SDL_Point{ event.button.x, event.button.y };
+    for (auto& p1 : *table)
+    {
+        auto col = p1.first;
+        auto colRow = p1.second;
+
+        // For each block in the current column
+        for (auto& p2 : *colRow)
+        {
+            auto row = p2.first;
+            auto block = p2.second;
+
+            if (block->IsClicked(mousePos))
+            {
+                block->Print();
+            }
+        }
+    }
 }

@@ -27,7 +27,7 @@ class EntryPoint
 {
 public:
     //TODO - Screen dimensions and frame rate
-    const Uint32 ScreenWidth = 640;
+    const Uint32 ScreenWidth = 800;
     const Uint32 ScreenHeight = 480;
     const Uint32 ScreenFPS = 60; 
     const Uint32 ScreenTicksPerFrame = 1000 / ScreenFPS;
@@ -66,11 +66,12 @@ private:
 
 #pragma region Game Cosmetics
     string fontName = "resources/OpenSans-Regular.ttf";
-    TTF_Font* font = nullptr;
+    TTF_Font *font = nullptr;
 #pragma endregion Game Cosmetics
 
     // The game table
-    GameTable game;
+    GameTable *game = nullptr;
+
 public:
 	EntryPoint();
     ~EntryPoint();
@@ -79,6 +80,7 @@ public:
     bool InitSDL();
     bool CreateWindow(const Uint32 W, const Uint32 H);
     bool CreateWindow();
+    void Start();
     bool HandleSDLEvents();
     bool PaintWindowRGB(const SDL_Color color);
     bool OnQuit();

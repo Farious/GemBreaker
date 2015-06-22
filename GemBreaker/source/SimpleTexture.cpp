@@ -14,7 +14,7 @@ SimpleTexture::~SimpleTexture()
     Free();
 }
 
-bool SimpleTexture::LoadFromFile(std::string path, const SDL_Color& keyColor)
+bool SimpleTexture::LoadFromFileRGB(std::string path, SDL_bool flag, const SDL_Color* keyColor)
 {
     // Let's clean up first
     Free();
@@ -31,8 +31,13 @@ bool SimpleTexture::LoadFromFile(std::string path, const SDL_Color& keyColor)
     }
     else
     {
+        Uint32 ret = 0;
         // Color key image
-        auto ret = SDL_SetColorKey(loadedSurface, SDL_TRUE, SDL_MapRGB(loadedSurface->format, keyColor.r, keyColor.g, keyColor.b));
+        if (flag == SDL_TRUE)
+        {
+            ret = SDL_SetColorKey(loadedSurface, flag, SDL_MapRGB(loadedSurface->format, keyColor->r, keyColor->g, keyColor->b));
+        }
+        
         if (ret != 0)
         {
             LogMessage(LogLevel::Error, "Unable to set color key! SDL_image Error: %s\n", IMG_GetError());
@@ -115,10 +120,21 @@ void SimpleTexture::Free()
     }
 }
 
+void SimpleTexture::setColor(SDL_Color &color)
+{
+    //Modulate texture 
+    SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
+}
+
 void SimpleTexture::Render(int x, int y)
 {
     SDL_Rect renderQuad{ x, y, width, height };
     SDL_RenderCopy(renderer, texture, nullptr, &renderQuad);
+}
+
+void SimpleTexture::Render(SDL_Rect &rect)
+{
+    SDL_RenderCopy(renderer, texture, nullptr, &rect);
 }
 
 Uint32 SimpleTexture::getWidth()
