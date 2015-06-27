@@ -12,7 +12,7 @@ enum class BlockType :Uint8 { Brick = 0, Bomb, Multiplier, NumberOfValues };
 class Block
 {
 public:
-    Block(BlockColour pColor, BlockType pType, Uint32 pX, Uint32 pY, Uint32 pPoints, Uint32 pMult);
+    Block(BlockColour pColor, BlockType pType, Uint32 pX, Uint32 pY, Uint32 pPoints, Uint32 pMult, SDL_Point *pOffsetPos);
 
     BlockColour color;
     BlockType type;
@@ -24,6 +24,9 @@ public:
     // Row position
     Uint32 y;
 
+    // Table Offset
+    SDL_Point *offset;
+
     // Amount of points this block gives
     Uint32 points;
 
@@ -31,8 +34,17 @@ public:
     Uint32 mult;
 
     // Size of block
-    Uint32 bSize = 30;
+    Uint32 bSize = 40;
 
+    // Is highlighted
+    bool highlighted = false;
+
+    // Marked to Destroy
+    bool marked = false;
+
+    // Link number, stores the link associated with this block.
+    // 0 <- no link
+    Uint32 link = 0;
 private:
     // Update rect
     void Update();
@@ -45,7 +57,7 @@ public:
     void MoveTo(Uint32 col, Uint32 row);
 
     // Returns true if it is clicked
-    bool IsClicked(SDL_Point& mousePos);
+    bool IsHover(SDL_Point& mousePos);
 
     // Render function
     void Render();

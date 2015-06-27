@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <chrono>
 #include <functional>
+#include <string>
+
 
 // GemBreaker includes
 #include "SimpleTexture.h"
@@ -23,7 +25,11 @@
 // Defining the alias to help out readability, hash map on the coordinates
 using Column = std::unordered_map < Uint32, Block* > ;
 using Table = std::unordered_map < Uint32, Column* > ;
+using Link = std::vector < Block* > ;
+using LinkList = std::vector < Link > ;
 using uDist = std::uniform_int_distribution < Uint32 > ;
+
+enum class GameTableState :Uint8 { Running, Paused, Ended, InputDisabled };
 
 class GameTable
 {
@@ -34,12 +40,14 @@ public:
     // Resets and Init Game
     void Init();
 
+    void Update();
+
 #pragma region Table Generation Functions
     // Clears table
     void ClearTable();
 
     // Generate a new column
-    Column* GenerateColumn(Uint32 col);
+    Column *GenerateColumn(Uint32 col);
 
     // Generate new table
     void GenerateTable();
@@ -48,8 +56,23 @@ public:
     void AddColumn();
 #pragma endregion Table Generation Functions
 
+    // Clear Marked blocks
+    void ClearBlocks(bool clearLink);
+
+    // Calculate all linked blocks
+    void CalcLinkedBlocks();
+
+    // Destroy blocks
+    void MarkBlocks(Block *block, bool highlight, bool destroy);
+
+    // Destroy blocks
+    void MarkBlocks(Block *block, Uint32 linkNr);
+
     // Render the table
     void Render(SDL_Renderer* renderer);
+
+    // Render text at position
+    void RenderText(std::string text, SDL_Color color, SDL_Point pos);
 
     // Calculate experience for next level
     void CalcNextLevelExperience();
@@ -71,6 +94,14 @@ public:
     // Event handler
     void HandleSDLMouseEvent(SDL_Event& event);
 
+    // Given an linked group of blocks calculate the 
+    // points it will give and update the score, level and
+    // experience
+    void GatherPoints(Uint32 linkNr);
+
+    // Given an linked group of blocks destroy them from the table
+    void RemoveBlocksAndUpdateTable(Uint32 linkNr);
+
 private:
     /*
       Game table's actual table.
@@ -90,15 +121,24 @@ private:
 
     // Common block texture, used by each color
     SimpleTexture* blockTexture = nullptr;
+    SimpleTexture* blockTextureHighlighted = nullptr;
 
     // Bomb texture
     SimpleTexture* bombTexture = nullptr;
 
+    // Text font and texture
+    const std::string fontName = "resources/OpenSans-Bold.ttf";
+    TTF_Font *gameFont = nullptr;
+    SimpleTexture* textTexture = nullptr;
+
     // Timer
-    SimpleTimer* timer;
+    SimpleTimer* timer = nullptr;
+    SimpleTimer* animTimer = nullptr;
+    Uint32 animSeconds = static_cast<Uint32>(0.1f * 1000);
 
     // Table screen position (upper left corner)
-    SDL_Point ulPos;
+    SDL_Point* ulPos = nullptr;
+    SDL_Rect* tableDelimiter = nullptr;
 
     // Simple random generator
     std::default_random_engine generator;
@@ -109,6 +149,8 @@ private:
     std::function<Uint32()> randBlockColor;
     std::function<Uint32()> randBlockType;
 
+    LinkList blockLinks;
+    Link* newLink = nullptr;
 #pragma region Game Variables
     // Current score
     Uint32 score = 0;
@@ -131,6 +173,14 @@ private:
     // Has the game ended
     bool ended = false;
 #pragma endregion Game Variables
+
+#pragma region Game State
+    GameTableState state = GameTableState::Running;
+
+public:
+    void Pause();
+    void Resume();
+#pragma endregion Game State
 };
 
 #endif /* _GAME_TABLE_H_ */

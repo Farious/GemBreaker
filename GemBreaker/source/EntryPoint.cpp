@@ -142,13 +142,34 @@ bool EntryPoint::HandleSDLEvents()
 #pragma endregion Keyboard Events
 
 #pragma region Mouse Events
+        case SDL_MOUSEMOTION:
         case SDL_MOUSEBUTTONDOWN:
-            LogMessage(LogLevel::Debug, "The mouse is at: %d x %d", event.button.x, event.button.y);
-            
+            //LogMessage(LogLevel::Debug, "The mouse is at: %d x %d", event.button.x, event.button.y);
+
             // Let's pass this event down to the GameTable
             game->HandleSDLMouseEvent(event);
             break;
 #pragma endregion Mouse Events
+
+#pragma region Window Events
+        case SDL_WINDOWEVENT:
+            switch (event.window.event)
+            {
+            case SDL_WINDOWEVENT_FOCUS_LOST:
+                gameState = GameState::Paused;
+                game->Pause();
+                fpsTimer.pause();
+                break;
+            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                gameState = GameState::Running;
+                game->Resume();
+                fpsTimer.unpause();
+                break;
+            default:
+                break;
+            }
+            break;
+#pragma endregion Window Events
 
         case SDL_QUIT:
             gameState = GameState::End;
@@ -250,9 +271,10 @@ bool EntryPoint::MainLoop()
 
         // Handling all SDL events
         HandleSDLEvents();
-
+        
         // Clears the renderer
         SDL_RenderClear(renderer);
+
 
         // Update FrameRate counter
         CalculateAverageFPS();
@@ -267,7 +289,11 @@ bool EntryPoint::MainLoop()
         // Update frame
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderPresent(renderer);
-        frameCount++;
+
+        if (!fpsTimer.IsPaused())
+        {
+            frameCount++;
+        }
 
         // If frame finished early 
         Uint32 frameTicks = capTimer.getTicks();
@@ -276,6 +302,7 @@ bool EntryPoint::MainLoop()
             //Wait remaining time 
             SDL_Delay(ScreenTicksPerFrame - frameTicks);
         }
+
     }
 
     return true;

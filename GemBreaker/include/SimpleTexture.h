@@ -40,7 +40,7 @@ public:
     void Render(int x, int y);
 
     // Render the texture in the specified rectangle
-    void Render(SDL_Rect &rect);
+    void Render(SDL_Rect rect);
 
     // Image dimension
     Uint32 getWidth();

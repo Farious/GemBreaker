@@ -1,6 +1,6 @@
 #include "Block.h"
 
-Block::Block(BlockColour pColor, BlockType pType, Uint32 pX, Uint32 pY, Uint32 pPoints, Uint32 pMult)
+Block::Block(BlockColour pColor, BlockType pType, Uint32 pX, Uint32 pY, Uint32 pPoints, Uint32 pMult, SDL_Point *pOffsetPos)
 {
     color = pColor;
     type = pType;
@@ -8,13 +8,14 @@ Block::Block(BlockColour pColor, BlockType pType, Uint32 pX, Uint32 pY, Uint32 p
     y = pY;
     points = pPoints;
     mult = pMult;
+    offset = pOffsetPos;
 
     Update();
 }
 
 void Block::Update()
 {
-    rect = SDL_Rect{ x * bSize, y * bSize, bSize, bSize };
+    rect = SDL_Rect{ x * bSize + offset->x, y * bSize + offset->y, bSize, bSize };
 }
 
 SDL_Color Block::RetrieveColor(BlockColour color)
@@ -54,7 +55,7 @@ void Block::MoveTo(Uint32 col, Uint32 row)
     Update();
 }
 
-bool Block::IsClicked(SDL_Point& mousePos)
+bool Block::IsHover(SDL_Point& mousePos)
 {
     return SDL_EnclosePoints(&mousePos, 1, &rect, nullptr) == SDL_TRUE;
 }

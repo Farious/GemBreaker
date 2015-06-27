@@ -132,7 +132,7 @@ void SimpleTexture::Render(int x, int y)
     SDL_RenderCopy(renderer, texture, nullptr, &renderQuad);
 }
 
-void SimpleTexture::Render(SDL_Rect &rect)
+void SimpleTexture::Render(SDL_Rect rect)
 {
     SDL_RenderCopy(renderer, texture, nullptr, &rect);
 }
