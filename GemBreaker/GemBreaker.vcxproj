@@ -81,6 +81,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="source\SimpleButton.cpp" />
     <ClCompile Include="source\Block.cpp" />
     <ClCompile Include="source\GameTable.cpp" />
     <ClCompile Include="source\DebugTools.cpp" />
@@ -96,6 +97,7 @@
     <ClInclude Include="include\EntryPoint.h" />
     <ClInclude Include="include\SimpleTimer.h" />
     <ClInclude Include="include\SimpleTexture.h" />
+    <ClInclude Include="include\SimpleButton.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -15,10 +15,10 @@ Block::Block(BlockColour pColor, BlockType pType, Uint32 pX, Uint32 pY, Uint32 p
 
 void Block::Update()
 {
-    rect = SDL_Rect{ x * bSize + offset->x, y * bSize + offset->y, bSize, bSize };
+    rect = SDL_Rect{ offset->x + x * bSize, offset->y - y * bSize, bSize, bSize };
 }
 
-SDL_Color Block::RetrieveColor(BlockColour color)
+SDL_Color Block::RetrieveColor()
 {
     switch (color)
     {

@@ -10,10 +10,10 @@ GameTable::GameTable(SDL_Renderer* pRenderer)
     animTimer = new SimpleTimer();
 
     // Upper Left position
-    ulPos = new SDL_Point{ 50, 50 };
+    ulPos = new SDL_Point{ 50, 300 };
 
     // Table Rectangle delimiter
-    tableDelimiter = new SDL_Rect{ ulPos->x, ulPos->y, colLimit * 40, rowNum * 40 };
+    tableDelimiter = new SDL_Rect{ ulPos->x, ulPos->y - (rowNum - 1) * 40, colLimit * 40, rowNum * 40 };
 
     // Initialize randomization
     distributionForColumn = uDist(minColNum, rowNum);
@@ -27,7 +27,7 @@ GameTable::GameTable(SDL_Renderer* pRenderer)
     // Random functions
     // Defining on the fly seed for the random engine
     auto seed = static_cast<Uint32>(std::chrono::system_clock::now().time_since_epoch().count());
-    generator = std::default_random_engine(seed);
+    generator = std::default_random_engine(1);
 
     // Binding for ease of use
     randColNum = std::bind(distributionForColumn, generator);
@@ -45,6 +45,9 @@ GameTable::GameTable(SDL_Renderer* pRenderer)
     gameFont = TTF_OpenFont(fontName.c_str(), 20);
     textTexture = new SimpleTexture(pRenderer);
 
+    // Loading button textures
+    button = new SimpleButton(pRenderer, SDL_Color{ 255, 255, 255, 255 }, ulPos->x + ((colLimit - 1) * 40), ulPos->y + 40, 40, 40);
+
     // Initialize Linked block lists
     blockLinks = LinkList();
     newLink = new Link();
@@ -52,7 +55,6 @@ GameTable::GameTable(SDL_Renderer* pRenderer)
     // Initialize all the game variables
     Init();
 }
-
 
 GameTable::~GameTable()
 {
@@ -100,6 +102,7 @@ void GameTable::Init()
 
     // Generate the table
     GenerateTable();
+    //UpdateTable();
 
     // Calculate all linked blocks
     CalcLinkedBlocks();
@@ -121,6 +124,90 @@ void GameTable::Update()
 
             // Let's get back to normal
             state = GameTableState::Running;
+        }
+    }
+}
+
+void GameTable::UpdateTable()
+{
+    Uint32 lastRow = 0, lastCol = colLimit - 1;
+    Column *colMap = new Column();
+    bool shouldSwap = false;
+    bool shouldMoveCol = false;
+
+    // Let's traverse this in the reverse order
+    for (auto rit = table->rbegin(); rit != table->rend(); ++rit)
+    {
+        auto col = rit->first;
+        auto colRow = rit->second;
+
+        shouldMoveCol = lastCol != col;
+        shouldSwap = false;
+        colMap->clear();
+        lastRow = 0;
+        // For each block in the current column
+        for (auto& p2 : *colRow)
+        {
+            auto row = p2.first;
+            auto block = p2.second;
+
+            auto finalRow = (lastRow != row) ? lastRow : row;
+            auto finalCol = (lastCol != col) ? lastCol : col;
+            if (finalRow != row || finalCol != col)
+            {
+                // If there is a gap, then recreate the pair
+                block->MoveTo(finalCol, finalRow);
+                // Generate the pair to populate the column
+                auto pair = std::make_pair(finalRow, block);
+
+                // Insert pair
+                colMap->insert(pair);
+                shouldSwap = true;
+            }
+            else
+            {
+                // If there is no gap, then maintain the pair
+                // Insert pair
+                colMap->insert(p2);
+            }
+
+            lastRow++;
+        }
+
+        if (shouldSwap)
+        {
+            colRow->swap(*colMap);
+        }
+        
+        if (shouldMoveCol)
+        {
+            table->erase(col);
+            table->insert(std::make_pair(lastCol, colRow));
+        }
+
+        lastCol--;
+    }
+
+
+    // Clean up
+    colMap->clear();
+    delete colMap;
+}
+
+void GameTable::MoveColumnsLeft()
+{
+    for (auto& p1 : *table)
+    {
+        auto col = p1.first;
+        auto colRow = p1.second;
+
+        if (col > 0)
+        {
+            auto pair = std::make_pair(col - 1, colRow);
+            table->erase(col);
+            table->insert(pair);
+
+            // Update blocks
         }
     }
 }
@@ -384,7 +471,7 @@ void GameTable::MarkBlocks(Block *block, Uint32 linkNr)
 
 void GameTable::Render(SDL_Renderer* renderer)
 {
-    if (state != GameTableState::Paused )
+    if (state != GameTableState::Paused)
     {
         for (auto& p1 : *table)
         {
@@ -396,7 +483,7 @@ void GameTable::Render(SDL_Renderer* renderer)
             {
                 auto row = p2.first;
                 auto block = p2.second;
-                auto color = block->RetrieveColor(block->color);
+                auto color = block->RetrieveColor();
 
                 if (block->highlighted)
                 {
@@ -414,6 +501,7 @@ void GameTable::Render(SDL_Renderer* renderer)
 
     Update();
     RenderText(std::to_string(score), SDL_Color{ 255, 255, 255, 255 }, SDL_Point{ 100, 0 });
+    button->Render();
 }
 
 void GameTable::RenderText(std::string text, SDL_Color color, SDL_Point pos)
@@ -445,9 +533,7 @@ void GameTable::LevelUp()
 
 void GameTable::HandleSDLMouseEvent(SDL_Event& event)
 {
-    bool found = false;
-    bool remove = false;
-    Uint32 linkNR = 0;
+
 
     if (state != GameTableState::Running)
     {
@@ -455,13 +541,36 @@ void GameTable::HandleSDLMouseEvent(SDL_Event& event)
         return;
     }
 
+    button->highlighted = false;
     auto mousePos = SDL_Point{ event.button.x, event.button.y };
 
-    if (SDL_EnclosePoints(&mousePos, 1, tableDelimiter, nullptr) == SDL_FALSE)
+    ClearBlocks(false);
+    if (SDL_EnclosePoints(&mousePos, 1, tableDelimiter, nullptr) == SDL_TRUE)
     {
-        return;
+        ProcessInputOnBlocks(mousePos, event);
     }
+    else if (SDL_EnclosePoints(&mousePos, 1, &(button->rect), nullptr) == SDL_TRUE)
+    {
+        button->highlighted = true;
+        if (event.button.state == SDL_PRESSED)
+        {
+            MoveColumnsLeft();
+            
+            table->insert(std::make_pair(colLimit - 1, GenerateColumn(colLimit - 1)));
 
+            UpdateTable();
+
+            ClearBlocks(true);
+            CalcLinkedBlocks();
+        }
+    }
+}
+
+void GameTable::ProcessInputOnBlocks(SDL_Point& mousePos, SDL_Event& event)
+{
+    bool found = false;
+    bool remove = false;
+    Uint32 linkNR = 0;
     for (auto& p1 : *table)
     {
         auto col = p1.first;
@@ -527,9 +636,19 @@ void GameTable::RemoveBlocksAndUpdateTable(Uint32 linkNr)
 {
     for (auto blockPos : blockLinks[linkNr - 1])
     {
-        table->at(blockPos->x)->erase(blockPos->y);
+        auto col = table->at(blockPos->x);
+        col->erase(blockPos->y);
+
+        if (col->size() == 0)
+        {
+            table->erase(blockPos->x);
+            delete col;
+        }
+
         delete blockPos;
     }
+
+    UpdateTable();
 
     ClearBlocks(true);
     CalcLinkedBlocks();

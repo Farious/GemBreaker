@@ -9,6 +9,7 @@
 #include <chrono>
 #include <functional>
 #include <string>
+#include <map>
 
 
 // GemBreaker includes
@@ -16,6 +17,7 @@
 #include "SimpleTimer.h"
 #include "DebugTools.h"
 #include "Block.h"
+#include "SimpleButton.h"
 
 
 #pragma region Block Definition
@@ -23,8 +25,8 @@
 #pragma endregion Block Definition
 
 // Defining the alias to help out readability, hash map on the coordinates
-using Column = std::unordered_map < Uint32, Block* > ;
-using Table = std::unordered_map < Uint32, Column* > ;
+using Column = std::map < Uint32, Block* > ;
+using Table = std::map < Uint32, Column* > ;
 using Link = std::vector < Block* > ;
 using LinkList = std::vector < Link > ;
 using uDist = std::uniform_int_distribution < Uint32 > ;
@@ -41,6 +43,12 @@ public:
     void Init();
 
     void Update();
+
+    // To be called after 
+    void UpdateTable();
+
+    // Move column
+    void MoveColumnsLeft();
 
 #pragma region Table Generation Functions
     // Clears table
@@ -94,6 +102,8 @@ public:
     // Event handler
     void HandleSDLMouseEvent(SDL_Event& event);
 
+    void ProcessInputOnBlocks(SDL_Point& mousePos, SDL_Event& event);
+
     // Given an linked group of blocks calculate the 
     // points it will give and update the score, level and
     // experience
@@ -128,8 +138,11 @@ private:
 
     // Text font and texture
     const std::string fontName = "resources/OpenSans-Bold.ttf";
-    TTF_Font *gameFont = nullptr;
+    TTF_Font* gameFont = nullptr;
     SimpleTexture* textTexture = nullptr;
+
+    // Button texture
+    SimpleButton* button;
 
     // Timer
     SimpleTimer* timer = nullptr;

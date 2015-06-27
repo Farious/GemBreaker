@@ -38,8 +38,8 @@ public:
 
     // Is highlighted
     bool highlighted = false;
-
     // Marked to Destroy
+
     bool marked = false;
 
     // Link number, stores the link associated with this block.
@@ -51,7 +51,7 @@ private:
 
 public:
     // Calculate color
-    SDL_Color RetrieveColor(BlockColour color);
+    SDL_Color RetrieveColor();
 
     // Move to another col and row
     void MoveTo(Uint32 col, Uint32 row);
