@@ -18,11 +18,7 @@
 #include "DebugTools.h"
 #include "Block.h"
 #include "SimpleButton.h"
-
-
-#pragma region Block Definition
-
-#pragma endregion Block Definition
+#include "SimpleConstants.h"
 
 // Defining the alias to help out readability, hash map on the coordinates
 using Column = std::map < Uint32, Block* > ;
@@ -36,13 +32,15 @@ enum class GameTableState :Uint8 { Running, Paused, Ended, InputDisabled };
 class GameTable
 {
 public:
-    GameTable(SDL_Renderer* pRenderer);
+    GameTable(SDL_Renderer* pRenderer, const Uint32 w, const Uint32 h);
     ~GameTable();
 
     // Resets and Init Game
     void Init();
 
     void Update();
+
+    void AddNewColumn();
 
     // To be called after 
     void UpdateTable();
@@ -76,11 +74,19 @@ public:
     // Destroy blocks
     void MarkBlocks(Block *block, Uint32 linkNr);
 
-    // Render the table
-    void Render(SDL_Renderer* renderer);
+    // Tick the table
+    void Tick(SDL_Renderer* renderer);
+
+    void RenderRunning();
+
+    void RenderPause();
+
+    void RenderUserInterface(SDL_Renderer* renderer);
+
+    void BackgroundRenderer(SDL_Renderer* renderer);
 
     // Render text at position
-    void RenderText(std::string text, SDL_Color color, SDL_Point pos);
+    void RenderText(const std::string& text, SDL_Color& color, SDL_Point& pos);
 
     // Calculate experience for next level
     void CalcNextLevelExperience();
@@ -128,6 +134,11 @@ private:
     Uint32 colLimit = 18;
     Uint32 minColNum = 3;
     Uint32 baseMaxBlockColor = 3;
+    Uint32 windowW = 0;
+    Uint32 windowH = 0;
+
+    // Table background texture
+    SimpleTexture* backgroundTexture = nullptr;
 
     // Common block texture, used by each color
     SimpleTexture* blockTexture = nullptr;
@@ -137,15 +148,22 @@ private:
     SimpleTexture* bombTexture = nullptr;
 
     // Text font and texture
-    const std::string fontName = "resources/OpenSans-Bold.ttf";
+    const std::string fontName = FONT_NAME;
     TTF_Font* gameFont = nullptr;
     SimpleTexture* textTexture = nullptr;
 
-    // Button texture
-    SimpleButton* button;
+    // Buttons
+    SimpleTexture* btnAddFaceTexture = nullptr;
+    SimpleButton* btnAddColumn;
 
-    // Timer
+    // Game Timer
+    SDL_Rect timerRect;
+    SDL_Color timerFillColor;
+    SDL_Color timerBGColor;
+
     SimpleTimer* timer = nullptr;
+
+    // Animation timer
     SimpleTimer* animTimer = nullptr;
     Uint32 animSeconds = static_cast<Uint32>(0.1f * 1000);
 
@@ -164,6 +182,30 @@ private:
 
     LinkList blockLinks;
     Link* newLink = nullptr;
+
+    // Score rendering settings
+    SDL_Color scoreColor;
+    SDL_Point scoreULPos;
+    const std::string scoreText = "Score : ";
+
+    // Level rendering settings
+    SDL_Point levelULPos;
+    const std::string levelText = "Level : ";
+
+    // Screen shake variable
+    SDL_Point screenShakeULPos;
+
+    // Paused variables
+    SDL_Point pauseULPos;
+    SDL_Texture* pauseTexture = nullptr;
+    const std::string pauseText = "PAUSED";
+
+    // Experience rendering settings
+    SDL_Point expULPos;
+    SDL_Rect expRect;
+    const std::string expText = "experience";
+
+
 #pragma region Game Variables
     // Current score
     Uint32 score = 0;
@@ -174,14 +216,15 @@ private:
     // Current level
     Uint32 level = 0;
 
-    // Amount of time for the next column
-    const float timeToNextCol = 5000.f; // 5 seconds
+    // Amount of time for the next column and timer based points
+    const float timerBonusPoints = 50.f;
+    const float timeToNextCol = 3000.f; // 3 seconds
 
     // Amount of experience needed to level up
     // Base experience needed expression: 
-    //     ((crntLvl + 1) ^ 2 ) * baseExpToLevelUp 
-    const Uint32 baseExpToLevelUp = 10;
-    Uint32 expToLevelUp = 10;
+    //     ((crntLvl + 1) * 3 ) * baseExpToLevelUp 
+    const Uint32 baseExpToLevelUp = 300;
+    Uint32 expToLevelUp = baseExpToLevelUp;
 
     // Has the game ended
     bool ended = false;

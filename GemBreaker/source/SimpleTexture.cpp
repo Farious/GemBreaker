@@ -14,7 +14,7 @@ SimpleTexture::~SimpleTexture()
     Free();
 }
 
-bool SimpleTexture::LoadFromFileRGB(std::string path, SDL_bool flag, const SDL_Color* keyColor)
+bool SimpleTexture::LoadFromFileRGB(const std::string& path, SDL_bool flag, const SDL_Color* keyColor)
 {
     // Let's clean up first
     Free();
@@ -72,7 +72,7 @@ bool SimpleTexture::LoadFromFileRGB(std::string path, SDL_bool flag, const SDL_C
     return false;
 }
 
-bool SimpleTexture::LoadFromRenderedText(TTF_Font* font, std::string textureText, SDL_Color textColor)
+bool SimpleTexture::LoadFromRenderedText(TTF_Font* font, const std::string& textureText, SDL_Color& textColor)
 {
     //Get rid of preexisting texture 
     Free();
@@ -120,7 +120,7 @@ void SimpleTexture::Free()
     }
 }
 
-void SimpleTexture::setColor(SDL_Color &color)
+void SimpleTexture::setColor(SDL_Color& color)
 {
     //Modulate texture 
     SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
@@ -132,7 +132,7 @@ void SimpleTexture::Render(int x, int y)
     SDL_RenderCopy(renderer, texture, nullptr, &renderQuad);
 }
 
-void SimpleTexture::Render(SDL_Rect rect)
+void SimpleTexture::Render(SDL_Rect& rect)
 {
     SDL_RenderCopy(renderer, texture, nullptr, &rect);
 }

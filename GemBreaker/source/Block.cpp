@@ -23,26 +23,26 @@ SDL_Color Block::RetrieveColor()
     switch (color)
     {
     case BlockColour::Red:
-        return SDL_Color{ 255, 0, 0, 255 };
+        return SDL_Color{ 0xD6, 0x51, 0x4F, 0xFF };
         break;
     case BlockColour::Yellow:
-        return SDL_Color{ 255, 255, 0, 255 };
+        return SDL_Color{ 0xD6, 0xAB, 0x4F, 0xFF };
         break;
     case BlockColour::Green:
-        return SDL_Color{ 0, 255, 0, 255 };
+        return SDL_Color{ 0x91, 0xD6, 0x4F, 0xFF };
         break;
     case BlockColour::Blue:
-        return SDL_Color{ 0, 0, 255, 255 };
+        return SDL_Color{ 0x4F, 0x7A, 0xD6, 0xFF };
         break;
     case BlockColour::Black:
-        return SDL_Color{ 0, 0, 0, 255 };
+        return SDL_Color{ 0x0, 0x0, 0x0, 0xFF };
         break;
     case BlockColour::White:
-        return SDL_Color{ 255, 255, 255, 255 };
+        return SDL_Color{ 0xFF, 0xFF, 0xFF, 0xFF };
         break;
     case BlockColour::NumberOfValues:
     default:
-        return SDL_Color{ 255, 255, 255, 255 };
+        return SDL_Color{ 0xFF, 0xFF, 0xFF, 0xFF };
         break;
     }
 }

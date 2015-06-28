@@ -19,16 +19,16 @@ public:
     ~SimpleTexture();
 
     // Loads images from file
-    bool LoadFromFileRGB(std::string path, SDL_bool flag, const SDL_Color *keyColor);
+    bool LoadFromFileRGB(const std::string& path, SDL_bool flag, const SDL_Color* keyColor);
 
     // Creates image from font string 
-    bool LoadFromRenderedText(TTF_Font* font, std::string textureText, SDL_Color textColor);
+    bool LoadFromRenderedText(TTF_Font* font, const std::string& textureText, SDL_Color& textColor);
 
     // Deallocates texture;
     void Free();
 
     // Set color modulation 
-    void setColor(SDL_Color &color);
+    void setColor(SDL_Color& color);
 
     // Set blending 
     void setBlendMode(SDL_BlendMode blending);
@@ -40,7 +40,7 @@ public:
     void Render(int x, int y);
 
     // Render the texture in the specified rectangle
-    void Render(SDL_Rect rect);
+    void Render(SDL_Rect& rect);
 
     // Image dimension
     Uint32 getWidth();

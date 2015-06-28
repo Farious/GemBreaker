@@ -110,7 +110,7 @@ void EntryPoint::Start()
         CreateWindow();
 
         // Initializes GameTable
-        game = new GameTable(renderer);
+        game = new GameTable(renderer, ScreenWidth, ScreenHeight);
 
         MainLoop();
 
@@ -240,8 +240,11 @@ void EntryPoint::CalculateAverageFPS()
 
 void EntryPoint::DrawFramerate()
 {
-    fpsTex->LoadFromRenderedText(font, std::to_string(avgFPS), SDL_Color{ 255, 0, 0, 0 });
-    fpsTex->Render(0, 0);
+    if (GB_DEBUG)
+    {
+        fpsTex->LoadFromRenderedText(font, std::to_string(avgFPS), SDL_Color{ 255, 0, 0, 0 });
+        fpsTex->Render(0, 0);
+    }
 }
 
 bool EntryPoint::MainLoop()
@@ -251,17 +254,6 @@ bool EntryPoint::MainLoop()
 
     // Setup FPS texture
     fpsTex = new SimpleTexture(renderer);
-
-    // TODO - Remove this
-    SimpleTexture bgTex(renderer);//../../External/KenneyNL/PNG/Balls/Black/
-    auto rOk = bgTex.LoadFromFileRGB("ballBlack_10.png", SDL_FALSE, nullptr);
-
-    if (!rOk)
-    {
-        gameState = GameState::End;
-        return false;
-    }
-    // TODO - end remove this
 
     Uint32 i = 0;
     while (gameState != GameState::End)
@@ -273,21 +265,20 @@ bool EntryPoint::MainLoop()
         HandleSDLEvents();
         
         // Clears the renderer
+        SDL_SetRenderDrawColor(renderer, 0x1B, 0x1B, 0x1B, 0xFF);
         SDL_RenderClear(renderer);
-
 
         // Update FrameRate counter
         CalculateAverageFPS();
 
-        bgTex.Render(i++ % ScreenWidth, 0);
-
-        game->Render(renderer);
+        // 
+        game->Tick(renderer);
 
         // FPS Drawing
         DrawFramerate();
 
         // Update frame
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+        SDL_SetRenderDrawColor(renderer, 0x0, 0x0, 0x0, 0x0);
         SDL_RenderPresent(renderer);
 
         if (!fpsTimer.IsPaused())

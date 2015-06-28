@@ -5,12 +5,12 @@
 #include <SDL.h>
 #include <stdio.h>
 
+// Our includes
+#include "..\include\SimpleConstants.h"
+
 /*
  * Just a wrapper for debug messaging
  */
-// Enable\Disable debug messages
-#define GB_DEBUG 1
-
 // Enumerate that defines the logging level
 enum class LogLevel :Uint8 { Debug, Warn, Error };
 

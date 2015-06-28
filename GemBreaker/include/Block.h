@@ -3,6 +3,8 @@
 
 // SDL Include
 #include <SDL.h>
+
+// Our includes
 #include "DebugTools.h"
 
 enum class BlockColour :Uint8 { Red = 0, Yellow, Green, Blue, Black, White, NumberOfValues };
