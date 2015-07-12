@@ -64,6 +64,7 @@ GameTable::GameTable(SDL_Renderer* pRenderer, const Uint32 w, const Uint32 h)
     btnAddFaceTexture = new SimpleTexture(pRenderer);
     btnAddFaceTexture->LoadFromFileRGB(PLUS_TEX_HL_NAME, SDL_FALSE, nullptr);
     btnAddColumn = new SimpleButton(pRenderer, blockTexture, blockTextureHighlighted, btnAddFaceTexture, SDL_Color{ 255, 255, 255, 255 }, ulPos->x + ((colLimit - 1) * 40), ulPos->y + 40, 40, 40);
+    btnPauseGame = new SimpleButton(pRenderer, blockTexture, blockTextureHighlighted, nullptr, SDL_Color{ 255, 255, 255, 255 }, ulPos->x - 40 - 5, ulPos->y - ((rowNum - 1) * 40), 40, 40);
 
     // Initialize Linked block lists
     blockLinks = LinkList();
@@ -101,11 +102,13 @@ GameTable::~GameTable()
     delete bombTexture;
     delete blockTextureHighlighted;
     delete textTexture;
+    delete btnAddFaceTexture;
     backgroundTexture = nullptr;
     blockTexture = nullptr;
     blockTextureHighlighted = nullptr;
     bombTexture = nullptr;
     textTexture = nullptr;
+    btnAddFaceTexture = nullptr;
 
     // Clear the font
     TTF_CloseFont(gameFont);
@@ -122,6 +125,12 @@ GameTable::~GameTable()
     // Clean the Link pointer helper
     delete newLink;
     newLink = nullptr;
+
+    // Destroy buttons
+    delete btnAddColumn;
+    delete btnPauseGame;
+    btnAddColumn = nullptr;
+    btnPauseGame = nullptr;
 
     // Clean table
     ClearTable();
@@ -307,9 +316,27 @@ void GameTable::MoveColumnsLeft()
     }
 }
 
+void GameTable::TogglePause()
+{
+    if (isPaused)
+    {
+        isPaused = false;
+        state = prevState;
+
+        Resume();
+    }
+    else
+    {
+        isPaused = true;
+        prevState = state;
+        state = GameTableState::Paused;
+
+        Pause();
+    }
+}
+
 void GameTable::Pause()
 {
-    state = GameTableState::Paused;
     timer->pause();
     animTimer->pause();
     LogMessage(LogLevel::Debug, "Pause");
@@ -317,10 +344,35 @@ void GameTable::Pause()
 
 void GameTable::Resume()
 {
-    state = GameTableState::Running;
-    timer->unpause();
-    animTimer->unpause();
+    if (state == GameTableState::Running)
+    {
+        timer->unpause();
+        animTimer->unpause();
+    }
     LogMessage(LogLevel::Debug, "Resume");
+}
+
+void GameTable::LoseFocus()
+{
+    if (!isPaused)
+    {
+        prevState = state;
+        state = GameTableState::Paused;
+
+        Pause();
+    }
+    LogMessage(LogLevel::Debug, "Lost focus");
+}
+
+void GameTable::GainFocus()
+{
+    if (!isPaused)
+    {
+        state = prevState;
+
+        Resume();
+    }
+    LogMessage(LogLevel::Debug, "Regained focus");
 }
 
 void GameTable::ClearTable()
@@ -671,6 +723,7 @@ void GameTable::RenderUserInterface(SDL_Renderer* renderer)
     SDL_RenderFillRect(renderer, &fillRect);
 
     btnAddColumn->Render();
+    btnPauseGame->Render();
 }
 
 void GameTable::BackgroundRenderer(SDL_Renderer* renderer)
@@ -712,7 +765,7 @@ void GameTable::LevelUp()
 
 void GameTable::HandleSDLMouseEvent(SDL_Event& event)
 {
-    if (state != GameTableState::Running)
+    if (state != GameTableState::Running && state != GameTableState::Paused)
     {
         ClearBlocks(false);
         return;
@@ -720,6 +773,9 @@ void GameTable::HandleSDLMouseEvent(SDL_Event& event)
 
     // Clear button state
     btnAddColumn->highlighted = false;
+    btnPauseGame->highlighted = false;
+
+    // Mouse position
     auto mousePos = SDL_Point{ event.button.x, event.button.y };
 
     // Clear highlight state
@@ -728,7 +784,10 @@ void GameTable::HandleSDLMouseEvent(SDL_Event& event)
     if (SDL_EnclosePoints(&mousePos, 1, tableDelimiter, nullptr) == SDL_TRUE)
     {
         // We are over the table
-        ProcessInputOnBlocks(mousePos, event);
+        if (state == GameTableState::Running)
+        {
+            ProcessInputOnBlocks(mousePos, event);
+        }
     }
     else if (SDL_EnclosePoints(&mousePos, 1, &(btnAddColumn->rect), nullptr) == SDL_TRUE)
     {
@@ -742,6 +801,16 @@ void GameTable::HandleSDLMouseEvent(SDL_Event& event)
             AddNewColumn();
             // Restart the timer for the new column
             timer->start();
+        }
+    }
+    else if (SDL_EnclosePoints(&mousePos, 1, &(btnPauseGame->rect), nullptr) == SDL_TRUE)
+    {
+        // We are over the pause button
+        btnPauseGame->highlighted = true;
+        if (event.button.state == SDL_PRESSED)
+        {
+            // Let's pause the game
+            TogglePause();
         }
     }
 }

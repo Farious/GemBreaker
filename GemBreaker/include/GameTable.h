@@ -154,7 +154,8 @@ private:
 
     // Buttons
     SimpleTexture* btnAddFaceTexture = nullptr;
-    SimpleButton* btnAddColumn;
+    SimpleButton* btnAddColumn = nullptr;
+    SimpleButton* btnPauseGame = nullptr;
 
     // Game Timer
     SDL_Rect timerRect;
@@ -228,14 +229,19 @@ private:
 
     // Has the game ended
     bool ended = false;
+    bool isPaused = false;
 #pragma endregion Game Variables
 
 #pragma region Game State
     GameTableState state = GameTableState::Running;
-
+    GameTableState prevState = GameTableState::Running;
+    
 public:
+    void TogglePause();
     void Pause();
     void Resume();
+    void LoseFocus();
+    void GainFocus();
 #pragma endregion Game State
 };
 

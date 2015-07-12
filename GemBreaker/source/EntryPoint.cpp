@@ -156,13 +156,11 @@ bool EntryPoint::HandleSDLEvents()
             switch (event.window.event)
             {
             case SDL_WINDOWEVENT_FOCUS_LOST:
-                gameState = GameState::Paused;
-                game->Pause();
+                game->LoseFocus();
                 fpsTimer.pause();
                 break;
             case SDL_WINDOWEVENT_FOCUS_GAINED:
-                gameState = GameState::Running;
-                game->Resume();
+                game->GainFocus();
                 fpsTimer.unpause();
                 break;
             default:
