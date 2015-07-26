@@ -34,7 +34,9 @@ void SimpleButton::Render()
 
     if (btnFaceTexture != nullptr)
     {
-        btnFaceTexture->setColor(SDL_Color{ 0xAF, 0xAF, 0xAF, 0xFF });
-        btnFaceTexture->Render(SDL_Rect{ rect.x, rect.y, rect.w - 1, rect.h - 1 });
+        //color = SDL_Color{ 0xAF, 0xAF, 0xAF, 0xFF };
+        //rect = SDL_Rect{ rect.x, rect.y, rect.w - 1, rect.h - 1 };
+        btnFaceTexture->setColor(color);
+        btnFaceTexture->Render(rect);
     }
 }

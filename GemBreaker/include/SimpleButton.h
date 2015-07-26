@@ -1,7 +1,7 @@
 #ifndef _SIMPLE_BUTTON_H_
 #define _SIMPLE_BUTTON_H_
 
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include "DebugTools.h"
 
 // Our includes

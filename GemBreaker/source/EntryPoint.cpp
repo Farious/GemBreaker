@@ -240,7 +240,8 @@ void EntryPoint::DrawFramerate()
 {
     if (GB_DEBUG)
     {
-        fpsTex->LoadFromRenderedText(font, std::to_string(avgFPS), SDL_Color{ 255, 0, 0, 0 });
+        auto color = SDL_Color{ 255, 0, 0, 0 };
+        fpsTex->LoadFromRenderedText(font, std::to_string(avgFPS), color);
         fpsTex->Render(0, 0);
     }
 }

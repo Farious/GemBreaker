@@ -2,7 +2,7 @@
 #define _BLOCK_H_
 
 // SDL Include
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 // Our includes
 #include "DebugTools.h"

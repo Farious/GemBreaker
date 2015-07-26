@@ -147,7 +147,10 @@ void GameTable::Init()
     level = 0;
     expToLevelUp = baseExpToLevelUp;
     ended = false;
-
+    
+    // It will be on a Running state
+    state = GameTableState::Running;
+    
     // Generate the table
     GenerateTable();
     //UpdateTable();

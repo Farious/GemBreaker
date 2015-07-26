@@ -2,9 +2,9 @@
 #define _SIMPLE_TEXTURE_H
 
 // SDL includes
-#include <SDL.h>
-#include <SDL_image.h>
-#include <SDL_ttf.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
 // Standard includes
 #include <fstream>

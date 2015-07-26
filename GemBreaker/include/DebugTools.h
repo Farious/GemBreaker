@@ -2,11 +2,11 @@
 #define _DEBUG_TOOLS_H
 
 // Standard IO
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <stdio.h>
 
 // Our includes
-#include "..\include\SimpleConstants.h"
+#include "SimpleConstants.h"
 
 /*
  * Just a wrapper for debug messaging

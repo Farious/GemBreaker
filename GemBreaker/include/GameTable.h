@@ -2,7 +2,7 @@
 #define _GAME_TABLE_H_
 
 // Common includes
-#include <SDL.h>
+#include <SDL2/SDL.h>
 #include <unordered_map>
 #include <random>
 #include <algorithm>

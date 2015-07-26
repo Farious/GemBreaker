@@ -2,7 +2,7 @@
 #define _SIMPLE_TIMER_H
 
 // SDL2.0
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 class SimpleTimer
 {
