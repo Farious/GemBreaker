@@ -1,9 +1,9 @@
 # GemBreaker
-A clone of Miniclip's ORES made purely in SDL2.0 with C++
+A clone of ORES made purely in SDL2.0 with C++
 
 ## Resume
 This game was made in the context of an challenge that was presented to me.
-The challenge was to make a Miniclip's ORES with SDL2.0 and with C++ or Obj-C.
+The challenge was to make a ORES with SDL2.0 and with C++ or Obj-C.
 
 My choice simple as it, was given my background, was to take on this challenge with C++ (THE TIME FOR C++11+ HAS COME!)
 
